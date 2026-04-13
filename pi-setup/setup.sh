@@ -122,6 +122,33 @@ install_docker() {
 }
 
 # ============================================================
+# Tailscale installieren und einrichten
+# ============================================================
+install_tailscale() {
+    if command -v tailscale &> /dev/null; then
+        log_success "Tailscale bereits installiert ($(tailscale version | head -1))."
+    else
+        log_info "Installiere Tailscale..."
+        curl -fsSL https://tailscale.com/install.sh | sh
+        log_success "Tailscale installiert."
+    fi
+
+    # Tailscale-Dienst aktivieren
+    systemctl enable tailscaled
+    systemctl start tailscaled
+
+    # Mit Auth-Key authentifizieren (falls gesetzt) oder manuelle Anleitung
+    if [[ -n "${TAILSCALE_AUTHKEY:-}" ]]; then
+        log_info "Authentifiziere Tailscale mit Auth-Key..."
+        tailscale up --authkey="$TAILSCALE_AUTHKEY" --hostname="$SCREEN_NAME"
+        log_success "Tailscale verbunden."
+    else
+        log_warn "Kein Tailscale Auth-Key gesetzt."
+        log_warn "Nach dem Setup manuell authentifizieren mit: sudo tailscale up"
+    fi
+}
+
+# ============================================================
 # Hauptprogramm
 # ============================================================
 main() {
