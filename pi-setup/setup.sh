@@ -178,6 +178,74 @@ install_anthias() {
 }
 
 # ============================================================
+# Autostart sicherstellen — Pi zeigt Display direkt nach Boot
+# ============================================================
+configure_autostart() {
+    log_info "Konfiguriere Autostart..."
+
+    # Anthias-Dienste beim Boot starten
+    ANTHIAS_DIR="/home/${SUDO_USER:-pi}/anthias"
+    if [[ -f "$ANTHIAS_DIR/docker-compose.yml" ]]; then
+        # Systemd-Service für Anthias Docker Compose anlegen
+        cat > /etc/systemd/system/anthias.service << EOF
+[Unit]
+Description=Anthias Digital Signage
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=$ANTHIAS_DIR
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+User=${SUDO_USER:-pi}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        systemctl daemon-reload
+        systemctl enable anthias.service
+        log_success "Anthias Autostart konfiguriert."
+    else
+        log_warn "Anthias docker-compose.yml nicht gefunden — Autostart übersprungen."
+    fi
+}
+
+# ============================================================
+# Abschluss-Zusammenfassung anzeigen
+# ============================================================
+print_summary() {
+    TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "nicht verfügbar")
+
+    echo ""
+    echo "=============================================="
+    echo "  Setup abgeschlossen!"
+    echo "=============================================="
+    echo ""
+    echo "  Screen-Name:   ${SCREEN_NAME}"
+    echo "  Tailscale-IP:  ${TAILSCALE_IP}"
+    echo "  Anthias-UI:    http://${TAILSCALE_IP}:${ANTHIAS_PORT}"
+    echo ""
+
+    if [[ "$TAILSCALE_IP" == "nicht verfügbar" ]]; then
+        echo "  HINWEIS: Tailscale noch nicht authentifiziert."
+        echo "  Ausführen: sudo tailscale up"
+        echo "  Danach die Tailscale-IP mit 'tailscale ip -4' abfragen."
+    fi
+
+    echo ""
+    echo "  Nächste Schritte:"
+    echo "  1. Tailscale authentifizieren (falls noch nicht geschehen)"
+    echo "  2. Anthias-UI im Browser öffnen"
+    echo "  3. Medien hochladen und Playlist erstellen"
+    echo ""
+    echo "  Dokumentation: https://github.com/philipwnowak-lab/adscreen"
+    echo "=============================================="
+}
+
+# ============================================================
 # Hauptprogramm
 # ============================================================
 main() {
