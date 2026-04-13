@@ -33,6 +33,17 @@ Das Skript installiert:
 
 Laufzeit: ca. 10–20 Minuten (je nach Pi-Modell und Internetgeschwindigkeit).
 
+## Optionale Konfiguration
+
+Vor dem Setup kann eine `config.env` Datei angelegt werden, um den Screen-Namen und weitere Einstellungen festzulegen:
+
+```bash
+cp config.env.example config.env
+# config.env bearbeiten: SCREEN_NAME, SCREEN_LOCATION, TAILSCALE_AUTHKEY anpassen
+```
+
+Wenn keine `config.env` vorhanden ist, verwendet das Skript Standardwerte (`SCREEN_NAME=adscreen`, `ANTHIAS_PORT=8080`).
+
 ## Nach dem Setup
 
 1. **Tailscale authentifizieren** (falls nicht via Auth-Key automatisiert):
@@ -47,7 +58,7 @@ Laufzeit: ca. 10–20 Minuten (je nach Pi-Modell und Internetgeschwindigkeit).
    ```
 
 3. **Anthias-UI aufrufen:**
-   ```
+   ```text
    http://<tailscale-ip>:8080
    ```
 
