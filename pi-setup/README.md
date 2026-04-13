@@ -95,3 +95,37 @@ sudo tailscale up
 ```bash
 sudo systemctl status anthias-viewer
 ```
+
+## Ersten Content einrichten (Schritt-für-Schritt)
+
+### 1. Anthias-UI öffnen
+
+Browser öffnen: `http://<tailscale-ip>:8080`
+
+### 2. Asset hochladen
+
+- "Assets" → "Add Asset" klicken
+- Typ wählen: "Image" (JPG/PNG) oder "Video" (MP4)
+- Datei auswählen und hochladen
+- Dauer festlegen: z.B. 30 Sekunden für ein Bild
+
+Für Videos wird die Dauer automatisch erkannt.
+
+### 3. Playlist erstellen
+
+- In Anthias werden Assets direkt dem aktiven Schedule zugewiesen
+- Bei jedem Asset: Zeitplan "Always" aktivieren → Asset rotiert automatisch
+- Reihenfolge per Drag & Drop anpassen
+
+### 4. Display-Modus
+
+Anthias öffnet Chromium automatisch im Vollbild-Kiosk-Modus nach dem Boot.
+Änderungen in der UI werden innerhalb von 60 Sekunden auf dem Display wirksam.
+
+### 5. Empfohlene Videoformate
+
+Für beste Performance auf dem Raspberry Pi:
+- Container: MP4
+- Codec: H.264 (wird durch Hardware beschleunigt)
+- Auflösung: 1920×1080 (Full HD)
+- Bitrate: max. 8 Mbit/s für Pi 4, max. 4 Mbit/s für Pi 3
