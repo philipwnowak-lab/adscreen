@@ -152,7 +152,8 @@ install_tailscale() {
 # Anthias installieren (Digital Signage)
 # ============================================================
 install_anthias() {
-    ANTHIAS_DIR="/home/${SUDO_USER:-pi}/anthias"
+    SUDO_USER="${SUDO_USER:-pi}"
+    ANTHIAS_DIR="/home/${SUDO_USER}/anthias"
 
     if [[ -d "$ANTHIAS_DIR" ]]; then
         log_success "Anthias bereits installiert unter $ANTHIAS_DIR."
@@ -162,7 +163,6 @@ install_anthias() {
     log_info "Installiere Anthias — das kann 10–20 Minuten dauern..."
 
     # Anthias-Repository klonen
-    SUDO_USER="${SUDO_USER:-pi}"
     sudo -u "$SUDO_USER" git clone \
         --branch "$ANTHIAS_BRANCH" \
         --depth 1 \
@@ -170,8 +170,7 @@ install_anthias() {
         "$ANTHIAS_DIR"
 
     # Anthias-Setup-Skript ausführen (Docker-basiert)
-    cd "$ANTHIAS_DIR"
-    sudo -u "$SUDO_USER" bash bin/install_standalone.sh
+    sudo -u "$SUDO_USER" bash "$ANTHIAS_DIR/bin/install_standalone.sh"
 
     log_success "Anthias installiert."
     log_info "Anthias läuft auf Port $ANTHIAS_PORT."

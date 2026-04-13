@@ -23,7 +23,7 @@
 ## Automatisiertes Setup ausführen
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/philipwnowak-lab/adscreen/master/pi-setup/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/philipwnowak-lab/adscreen/master/pi-setup/setup.sh | sudo bash
 ```
 
 Das Skript installiert:
@@ -93,7 +93,7 @@ sudo tailscale up
 
 **Display bleibt schwarz:**
 ```bash
-sudo systemctl status anthias-viewer
+sudo systemctl status anthias.service
 ```
 
 ## Ersten Content einrichten (Schritt-für-Schritt)

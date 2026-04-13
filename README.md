@@ -18,7 +18,7 @@ Neuen Pi einrichten:
 
 ```bash
 ssh pi@<pi-ip>
-curl -sSL https://raw.githubusercontent.com/philipwnowak-lab/adscreen/master/pi-setup/setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/philipwnowak-lab/adscreen/master/pi-setup/setup.sh | sudo bash
 ```
 
 Danach erreichbar unter: `http://<tailscale-ip>:8080`
