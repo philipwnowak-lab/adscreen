@@ -93,6 +93,35 @@ install_dependencies() {
 }
 
 # ============================================================
+# Docker installieren (offizielle Installationsmethode)
+# ============================================================
+install_docker() {
+    if command -v docker &> /dev/null; then
+        log_success "Docker bereits installiert ($(docker --version))."
+        return
+    fi
+
+    log_info "Installiere Docker..."
+
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+    sh /tmp/get-docker.sh
+    rm /tmp/get-docker.sh
+
+    # Pi-Benutzer zur Docker-Gruppe hinzufügen (kein sudo nötig)
+    SUDO_USER="${SUDO_USER:-pi}"
+    if id "$SUDO_USER" &>/dev/null; then
+        usermod -aG docker "$SUDO_USER"
+        log_info "Benutzer '$SUDO_USER' zur Docker-Gruppe hinzugefügt."
+    fi
+
+    # Docker-Dienst aktivieren
+    systemctl enable docker
+    systemctl start docker
+
+    log_success "Docker installiert ($(docker --version))."
+}
+
+# ============================================================
 # Hauptprogramm
 # ============================================================
 main() {
