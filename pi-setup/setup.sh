@@ -70,6 +70,29 @@ load_config() {
 }
 
 # ============================================================
+# System-Pakete aktualisieren und Basis-Tools installieren
+# ============================================================
+install_dependencies() {
+    log_info "Aktualisiere System-Pakete..."
+
+    apt-get update -qq
+    apt-get upgrade -y -qq
+
+    log_info "Installiere Basis-Tools..."
+    apt-get install -y -qq \
+        curl \
+        wget \
+        git \
+        ca-certificates \
+        gnupg \
+        lsb-release \
+        apt-transport-https \
+        software-properties-common
+
+    log_success "System-Pakete aktualisiert."
+}
+
+# ============================================================
 # Hauptprogramm
 # ============================================================
 main() {
