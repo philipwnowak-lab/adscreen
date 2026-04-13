@@ -1,0 +1,94 @@
+#!/bin/bash
+set -euo pipefail
+
+# ============================================================
+# Adscreen Pi Setup Script
+# Installiert Docker, Tailscale und Anthias auf einem
+# frischen Raspberry Pi OS (64-bit).
+# Idempotent — mehrfaches Ausführen ist sicher.
+# ============================================================
+
+SCRIPT_VERSION="1.0.0"
+ANTHIAS_BRANCH="master"
+
+# Farben für Ausgabe
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+log_info()    { echo -e "${BLUE}[INFO]${NC}  $1"; }
+log_success() { echo -e "${GREEN}[OK]${NC}    $1"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC}  $1"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+
+# ============================================================
+# Vorbedingungen prüfen
+# ============================================================
+check_prerequisites() {
+    log_info "Prüfe Vorbedingungen..."
+
+    # Muss auf einem Raspberry Pi laufen
+    if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null && \
+       ! grep -q "BCM" /proc/cpuinfo 2>/dev/null; then
+        log_warn "Kein Raspberry Pi erkannt — Setup wird trotzdem fortgesetzt."
+    fi
+
+    # Muss als root oder via sudo laufen
+    if [[ $EUID -ne 0 ]]; then
+        log_error "Dieses Skript muss mit sudo ausgeführt werden."
+        log_error "Ausführen mit: sudo bash setup.sh"
+        exit 1
+    fi
+
+    # Internetverbindung prüfen
+    if ! curl -s --max-time 5 https://google.com > /dev/null 2>&1; then
+        log_error "Keine Internetverbindung. Bitte WLAN/LAN konfigurieren."
+        exit 1
+    fi
+
+    log_success "Vorbedingungen erfüllt."
+}
+
+# ============================================================
+# Konfiguration laden (falls config.env vorhanden)
+# ============================================================
+load_config() {
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    CONFIG_FILE="$SCRIPT_DIR/config.env"
+
+    if [[ -f "$CONFIG_FILE" ]]; then
+        log_info "Lade Konfiguration aus $CONFIG_FILE"
+        # shellcheck source=/dev/null
+        source "$CONFIG_FILE"
+    fi
+
+    SCREEN_NAME="${SCREEN_NAME:-adscreen}"
+    TAILSCALE_AUTHKEY="${TAILSCALE_AUTHKEY:-}"
+    ANTHIAS_PORT="${ANTHIAS_PORT:-8080}"
+}
+
+# ============================================================
+# Hauptprogramm
+# ============================================================
+main() {
+    echo ""
+    echo "=============================================="
+    echo "  Adscreen Pi Setup v${SCRIPT_VERSION}"
+    echo "=============================================="
+    echo ""
+
+    check_prerequisites
+    load_config
+
+    install_dependencies
+    install_docker
+    install_tailscale
+    install_anthias
+    configure_autostart
+
+    print_summary
+}
+
+main "$@"
