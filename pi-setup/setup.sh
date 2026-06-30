@@ -35,6 +35,14 @@ check_prerequisites() {
         log_warn "Kein Raspberry Pi erkannt — Setup wird trotzdem fortgesetzt."
     fi
 
+    # Muss 64-bit OS sein (Anthias unterstützt nur aarch64)
+    if [[ "$(uname -m)" != "aarch64" ]]; then
+        log_error "64-bit Raspberry Pi OS erforderlich!"
+        log_error "Aktuell: $(uname -m) — bitte mit Raspberry Pi Imager neu flashen."
+        log_error "OS wählen: Raspberry Pi OS Lite (64-bit)"
+        exit 1
+    fi
+
     # Muss als root oder via sudo laufen
     if [[ $EUID -ne 0 ]]; then
         log_error "Dieses Skript muss mit sudo ausgeführt werden."
@@ -160,57 +168,41 @@ install_anthias() {
         return
     fi
 
-    log_info "Installiere Anthias — das kann 10–20 Minuten dauern..."
+    # Anthias-Repository klonen (falls noch nicht vorhanden)
+    if [[ ! -d "$ANTHIAS_DIR/.git" ]]; then
+        log_info "Klone Anthias-Repository..."
+        sudo -u "$SUDO_USER" git clone \
+            --branch "$ANTHIAS_BRANCH" \
+            https://github.com/Screenly/Anthias.git \
+            "$ANTHIAS_DIR"
+    fi
 
-    # Anthias-Repository klonen
-    sudo -u "$SUDO_USER" git clone \
-        --branch "$ANTHIAS_BRANCH" \
-        --depth 1 \
-        https://github.com/Screenly/Anthias.git \
-        "$ANTHIAS_DIR"
-
-    # Anthias-Setup-Skript ausführen (Docker-basiert)
-    sudo -u "$SUDO_USER" bash "$ANTHIAS_DIR/bin/install.sh"
-
-    touch "$ANTHIAS_DIR/.installed"
-    log_success "Anthias installiert."
-    log_info "Anthias läuft auf Port $ANTHIAS_PORT."
+    # Anthias-Installer ist interaktiv (whiptail) und muss manuell
+    # gestartet werden — läuft im Vordergrund und dauert 10–20 Min.
+    echo ""
+    echo "============================================================"
+    echo "  Anthias jetzt manuell installieren:"
+    echo ""
+    echo "    bash ~/anthias/bin/install.sh"
+    echo ""
+    echo "  Empfohlene Einstellungen:"
+    echo "    Branch/Tag: master"
+    echo "    System Upgrade: Yes"
+    echo "    Manage Network: No"
+    echo ""
+    echo "  Nach der Installation: Reboot bestätigen."
+    echo "  Danach läuft Anthias auf Port $ANTHIAS_PORT."
+    echo "============================================================"
+    echo ""
 }
 
 # ============================================================
 # Autostart sicherstellen — Pi zeigt Display direkt nach Boot
 # ============================================================
 configure_autostart() {
-    log_info "Konfiguriere Autostart..."
-
-    # Anthias-Dienste beim Boot starten
-    ANTHIAS_DIR="/home/${SUDO_USER:-pi}/anthias"
-    if [[ -f "$ANTHIAS_DIR/docker-compose.yml" ]]; then
-        # Systemd-Service für Anthias Docker Compose anlegen
-        cat > /etc/systemd/system/anthias.service << EOF
-[Unit]
-Description=Anthias Digital Signage
-Requires=docker.service
-After=docker.service network-online.target
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=$ANTHIAS_DIR
-ExecStart=/usr/bin/docker compose up -d
-ExecStop=/usr/bin/docker compose down
-User=${SUDO_USER:-pi}
-
-[Install]
-WantedBy=multi-user.target
-EOF
-        systemctl daemon-reload
-        systemctl enable anthias.service
-        log_success "Anthias Autostart konfiguriert."
-    else
-        log_warn "Anthias docker-compose.yml nicht gefunden — Autostart übersprungen."
-    fi
+    # Anthias verwaltet seinen eigenen Autostart via systemd (ansible-Playbook).
+    # Kein manueller Service nötig.
+    log_success "Autostart wird von Anthias selbst verwaltet."
 }
 
 # ============================================================
