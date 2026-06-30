@@ -155,7 +155,7 @@ install_anthias() {
     SUDO_USER="${SUDO_USER:-pi}"
     ANTHIAS_DIR="/home/${SUDO_USER}/anthias"
 
-    if [[ -d "$ANTHIAS_DIR" ]]; then
+    if [[ -f "$ANTHIAS_DIR/.installed" ]]; then
         log_success "Anthias bereits installiert unter $ANTHIAS_DIR."
         return
     fi
@@ -170,8 +170,9 @@ install_anthias() {
         "$ANTHIAS_DIR"
 
     # Anthias-Setup-Skript ausführen (Docker-basiert)
-    sudo -u "$SUDO_USER" bash "$ANTHIAS_DIR/bin/install_standalone.sh"
+    sudo -u "$SUDO_USER" bash "$ANTHIAS_DIR/bin/install.sh"
 
+    touch "$ANTHIAS_DIR/.installed"
     log_success "Anthias installiert."
     log_info "Anthias läuft auf Port $ANTHIAS_PORT."
 }
