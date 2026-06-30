@@ -93,9 +93,7 @@ install_dependencies() {
         git \
         ca-certificates \
         gnupg \
-        lsb-release \
-        apt-transport-https \
-        software-properties-common
+        lsb-release
 
     log_success "System-Pakete aktualisiert."
 }
