@@ -195,6 +195,30 @@ install_anthias() {
 }
 
 # ============================================================
+# Tastatur-Shortcut: Ctrl+Alt+T öffnet Terminal (labwc)
+# Nützlich wenn Anthias nicht läuft
+# ============================================================
+configure_terminal_shortcut() {
+    REAL_USER="${SUDO_USER:-pi}"
+    USER_HOME="/home/${REAL_USER}"
+    LABWC_CONFIG="${USER_HOME}/.config/labwc/rc.xml"
+
+    sudo -u "$REAL_USER" mkdir -p "${USER_HOME}/.config/labwc"
+
+    if [[ ! -f "$LABWC_CONFIG" ]]; then
+        cp /etc/xdg/labwc/rc.xml "$LABWC_CONFIG"
+        chown "$REAL_USER:$REAL_USER" "$LABWC_CONFIG"
+    fi
+
+    if ! grep -q "C-A-t" "$LABWC_CONFIG"; then
+        sed -i 's|  </keyboard>|    <keybind key="C-A-t">\n      <action name="Execute">\n        <command>lxterminal</command>\n      </action>\n    </keybind>\n  </keyboard>|' "$LABWC_CONFIG"
+        log_success "Tastatur-Shortcut konfiguriert: Ctrl+Alt+T öffnet Terminal."
+    else
+        log_success "Tastatur-Shortcut bereits konfiguriert."
+    fi
+}
+
+# ============================================================
 # Autostart sicherstellen — Pi zeigt Display direkt nach Boot
 # ============================================================
 configure_autostart() {
@@ -252,6 +276,7 @@ main() {
     install_docker
     install_tailscale
     install_anthias
+    configure_terminal_shortcut
     configure_autostart
 
     print_summary
